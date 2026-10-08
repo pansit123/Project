@@ -1,0 +1,2 @@
+admin|1234
+superadmin|admin999
