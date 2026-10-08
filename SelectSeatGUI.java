@@ -4,6 +4,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 
+
 public class SelectSeatGUI extends JFrame implements ActionListener {
     Container cp;
     JLabel lblTitle,lblTrip, lblBusType, lblSeatCount, lblTotalPrice;
@@ -43,7 +44,6 @@ public class SelectSeatGUI extends JFrame implements ActionListener {
             BufferedReader br = new BufferedReader(new FileReader("trips.csv"));
             String line;
             br.readLine();
-
             while ((line = br.readLine()) != null) {
                 trips.add(line.split(","));
             }
@@ -84,39 +84,29 @@ public class SelectSeatGUI extends JFrame implements ActionListener {
 
         // เลือกเที่ยวรถ
         tripBox = new JComboBox<>();
-
         for (String[] trip : trips) {
             tripBox.addItem(trip[0] + " : " + trip[1] + " → " + trip[2]);
         }
-
         tripBox.setFont(new Font("Tahoma", Font.PLAIN, 14));
         tripBox.setBounds(8, 55, 400, 30);
         cp.add(tripBox);
-
         if (trips.size() > 0) {
             selectedTripID = trips.get(0)[0];
             lblTrip = new JLabel(trips.get(0)[1] + " → " + trips.get(0)[2]);
-            pricePerSeat = Integer.parseInt(trips.get(0)[6]);
         } else {
             lblTrip = new JLabel("รอ CSV");
         }
-
         lblTrip.setFont(new Font("Tahoma", Font.BOLD, 18));
         lblTrip.setBounds(8, 90, 400, 30);
         cp.add(lblTrip);
-
         tripBox.addActionListener(e -> {
             int index = tripBox.getSelectedIndex();
-
             if (index >= 0) {
                 selectedTripID = trips.get(index)[0];
                 lblTrip.setText(trips.get(index)[1] + " → " + trips.get(index)[2]);
-                pricePerSeat = Integer.parseInt(trips.get(index)[6]);
-
                 selectedCount = 0;
                 lblSeatCount.setText("ที่นั่งที่เลือก: 0");
                 lblTotalPrice.setText("ราคาสุทธิ: 0 บาท");
-
                 updateSeats();
             }
         });
@@ -134,7 +124,7 @@ public class SelectSeatGUI extends JFrame implements ActionListener {
         int btnHeight = 35;
         int dist = 6;
 
-        String[] rowLetters = {"A", "B", "D"};
+        String[] rowLetters = {"D", "B", "A"};
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 8; col++) {
                 JToggleButton btn = new JToggleButton();
@@ -259,34 +249,54 @@ public class SelectSeatGUI extends JFrame implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == btnBooking) {
-            if (selectedCount == 0) {
-                JOptionPane.showMessageDialog(
-                    this,"กรุณาเลือกที่นั่งอย่างน้อย 1 ที่นั่ง","แจ้งเตือน",
-                    JOptionPane.WARNING_MESSAGE
-                );
-            } else {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "ทำรายการจองเรียบร้อยแล้ว (" + selectedCount + " ที่นั่ง)", "สำเร็จ",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
+    if (e.getSource() == btnBooking) {
+        if (selectedCount == 0) {
+            JOptionPane.showMessageDialog(
+                this,
+                "กรุณาเลือกที่นั่งอย่างน้อย 1 ที่นั่ง",
+                "แจ้งเตือน",
+                JOptionPane.WARNING_MESSAGE
+            );
+        } else {
+            ArrayList<String> selectedSeats = new ArrayList<>();
+
+            for (Component c : cp.getComponents()) {
+                if (c instanceof JToggleButton) {
+                    JToggleButton btn = (JToggleButton) c;
+
+                    if (btn.isSelected()) {
+                        selectedSeats.add(btn.getText());
+                    }
+                }
             }
-        } else if (e.getSource() instanceof JToggleButton) {
-            JToggleButton btn = (JToggleButton) e.getSource();
-            if (btn.isSelected()) {
-                btn.setBackground(COLOR_SELECTED);
-                btn.setForeground(Color.BLACK);
-                selectedCount++;
-            } else {
-                btn.setBackground(COLOR_AVAILABLE);
-                btn.setForeground(Color.WHITE);
-                selectedCount--;
-            }
-            lblSeatCount.setText("ที่นั่งที่เลือก: " + selectedCount);
-            lblTotalPrice.setText("ราคาสุทธิ: " + (selectedCount * pricePerSeat) + " บาท");
+
+            new CreateBookingGUI(
+                selectedTripID,
+                trips.get(tripBox.getSelectedIndex())[1],trips.get(tripBox.getSelectedIndex())[2],
+                selectedSeats,
+                selectedCount,
+                selectedCount * pricePerSeat
+            );
+
+            this.dispose();
         }
+    } else if (e.getSource() instanceof JToggleButton) {
+        JToggleButton btn = (JToggleButton) e.getSource();
+
+        if (btn.isSelected()) {
+            btn.setBackground(COLOR_SELECTED);
+            btn.setForeground(Color.BLACK);
+            selectedCount++;
+        } else {
+            btn.setBackground(COLOR_AVAILABLE);
+            btn.setForeground(Color.WHITE);
+            selectedCount--;
+        }
+
+        lblSeatCount.setText("จำที่นั่งที่ท่านเลือก: " + selectedCount);
+        lblTotalPrice.setText("ราคาสุทธิ: " + (selectedCount * pricePerSeat) + " บาท");
     }
+}
     public void Finally() {
         this.setTitle("จองที่นั่งรถทัวร์");
         this.setSize(850, 480);
