@@ -238,17 +238,16 @@ public class LoginUI extends JFrame {
             }
 
             private BufferedImage loadImage() {
-                // ค้นหาผ่าน Classpath
                 try {
-                    java.net.URL url = getClass().getResource("/login/images/comsci.jpg");
+                    java.net.URL url = getClass().getResource("/sc/login/images/comsci.jpg");
                     if (url != null) return ImageIO.read(url);
                 } catch (Exception ignored) {}
 
-                // ค้นหาจากพาธไฟล์จริงในเครื่องหลายๆ รูปแบบ
                 String[] paths = {
+                        "src/sc/login/images/comsci.jpg",
+                        "sc/login/images/comsci.jpg",
                         "src/login/images/comsci.jpg",
                         "login/images/comsci.jpg",
-                        "sc/login/images/comsci.jpg",
                         "./images/comsci.jpg",
                         "images/comsci.jpg"
                 };
@@ -269,30 +268,33 @@ public class LoginUI extends JFrame {
         mainPanel.add(rightPanel);
         setContentPane(mainPanel);
 
-        // LOGIN EVENT (เมื่อ Login สำเร็จจะเปิดหน้า busbooking และปิดหน้า Login)
+        // =====================================================
+        // LOGIN EVENT (ล็อกอินสำเร็จ เปิดหน้า SelectSeatGUI ทันที)
+        // =====================================================
         loginButton.addActionListener(e -> {
             String email = userField.getText().trim();
             String pass = new String(passField.getPassword()).trim();
 
             if (user.login(email, pass)) {
                 JOptionPane.showMessageDialog(null, "Login สำเร็จ!", "สำเร็จ", JOptionPane.INFORMATION_MESSAGE);
-                dispose();
+                dispose(); // ปิดหน้า Login
 
+                // เปิดหน้า SelectSeatGUI ทันที
                 SwingUtilities.invokeLater(() -> {
-                    busbooking.Main.main(new String[]{});
+                    new SelectSeatGUI().setVisible(true);
                 });
             } else {
                 JOptionPane.showMessageDialog(null, "อีเมลหรือรหัสผ่านไม่ถูกต้อง", "ข้อผิดพลาด", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        // SIGN UP EVENT (เปิดหน้าสมัครสมาชิก)
+        // SIGN UP EVENT (เปิดหน้าสมัครสมาชิกในแพ็กเกจ sc.login)
         registerLink.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 dispose();
                 SwingUtilities.invokeLater(() -> {
-                    new login.RegisterFormUI().setVisible(true);
+                    new RegisterFormUI().setVisible(true);
                 });
             }
         });
