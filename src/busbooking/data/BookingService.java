@@ -143,8 +143,8 @@ public class BookingService {
         if (seatNos == null || seatNos.isEmpty()) {
             throw new BookingException("กรุณาเลือกที่นั่งอย่างน้อย 1 ที่นั่ง");
         }
-        if (pricePerSeat < 0) {
-            throw new BookingException("ราคาต้องไม่ติดลบ");
+        if (!Double.isFinite(pricePerSeat) || pricePerSeat < 0) {
+            throw new BookingException("ราคาต้องเป็นตัวเลขที่ถูกต้องและไม่ติดลบ");
         }
         noComma(userId, "รหัสผู้ใช้");
         noComma(routeId, "รหัสเส้นทาง");
@@ -281,10 +281,49 @@ public class BookingService {
      */
     public List<Ticket> payBookings(List<String> bookingIds, PaymentMethod method)
             throws BookingException {
-        List<Ticket> tickets = new ArrayList<>();
+        // ตรวจรายการทั้งหมดก่อนเริ่มชำระ เพื่อป้องกันกรณีจ่ายสำเร็จบางที่นั่ง
+        // แล้วค่อยพบว่ารายการถัดไปผิดพลาด
+        if (bookingIds == null || bookingIds.isEmpty()) {
+            throw new BookingException("ไม่พบรายการจองที่ต้องชำระเงิน");
+        }
+        if (method == null) {
+            throw new BookingException("กรุณาเลือกวิธีชำระเงิน");
+        }
+
+        Set<String> seenIds = new LinkedHashSet<>();
+        List<Booking> bookings = new ArrayList<>();
         for (String id : bookingIds) {
-            processPayment(id, method);
-            tickets.add(issueTicket(id));
+            if (isBlank(id)) {
+                throw new BookingException("รหัสการจองต้องไม่ว่าง");
+            }
+            String normalizedId = id.trim();
+            if (!seenIds.add(normalizedId)) {
+                throw new BookingException("พบรหัสการจองซ้ำ: " + normalizedId);
+            }
+            Booking b = findBooking(normalizedId);
+            if (b == null) {
+                throw new BookingException("ไม่พบการจองรหัส " + normalizedId);
+            }
+            if (b.getStatus() == BookingStatus.PAID) {
+                throw new BookingException("การจองนี้ชำระเงินแล้ว: " + normalizedId);
+            }
+            if (b.getStatus() == BookingStatus.CANCELLED) {
+                throw new BookingException("การจองนี้ถูกยกเลิกแล้ว: " + normalizedId);
+            }
+            if (hasDeparted(b)) {
+                throw new BookingException("เที่ยวรถนี้ออกเดินทางไปแล้ว: " + normalizedId);
+            }
+            if (isExpired(b)) {
+                throw new BookingException("หมดเวลาชำระเงิน (เกิน " + PENDING_MINUTES
+                        + " นาที): " + normalizedId);
+            }
+            bookings.add(b);
+        }
+
+        List<Ticket> tickets = new ArrayList<>();
+        for (Booking b : bookings) {
+            processPayment(b.getBookingId(), method);
+            tickets.add(issueTicket(b.getBookingId()));
         }
         return tickets;
     }

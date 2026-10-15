@@ -76,10 +76,21 @@ public class BookingServiceTest {
         expectFail("ไม่มี userId", () -> s.createBooking("", "R001", day, t9, Arrays.asList("B2"), 350));
         expectFail("เที่ยวที่ออกไปแล้ว", () -> s.createBooking("U2", "R001", LocalDate.now().minusDays(1), t9, Arrays.asList("B2"), 350));
         expectFail("มีคอมมาในรหัสที่นั่ง", () -> s.createBooking("U2", "R001", day, t9, Arrays.asList("B,2"), 350));
+        expectFail("ราคา NaN ต้องไม่ผ่าน", () -> s.createBooking("U2", "R001", day, t9, Arrays.asList("B2"), Double.NaN));
+        expectFail("ราคา Infinity ต้องไม่ผ่าน", () -> s.createBooking("U2", "R001", day, t9, Arrays.asList("B2"), Double.POSITIVE_INFINITY));
         check("จองไม่สำเร็จแล้วไม่มีแถวหลุดเข้าไฟล์", s.countBookedSeats("R001", day, t9) == 2);
 
         System.out.println("3) ชำระเงิน + ออกตั๋ว");
         List<String> ids = Arrays.asList(bk.get(0).getBookingId(), bk.get(1).getBookingId());
+        expectFail("ชำระแบบกลุ่มที่มีรหัสซ้ำต้องไม่ผ่าน",
+                () -> s.payBookings(Arrays.asList("BK0001", "BK0001"), PaymentMethod.PROMPTPAY));
+        check("ตรวจรายการกลุ่มล้มเหลวแล้วการจองเดิมยังรอชำระ",
+                s.findBooking("BK0001").getStatus() == BookingStatus.PENDING
+                        && s.findBooking("BK0002").getStatus() == BookingStatus.PENDING);
+        expectFail("ชำระแบบกลุ่มที่มีรหัสหายต้องไม่ผ่าน",
+                () -> s.payBookings(Arrays.asList("BK0001", "BK9999"), PaymentMethod.PROMPTPAY));
+        check("รหัสหายแล้วไม่มีรายการใดถูกชำระ",
+                s.findBooking("BK0001").getStatus() == BookingStatus.PENDING);
         List<Ticket> tk = s.payBookings(ids, PaymentMethod.PROMPTPAY);
         check("ได้ตั๋ว 2 ใบ", tk.size() == 2);
         check("สถานะเป็น PAID", s.findBooking("BK0001").getStatus() == BookingStatus.PAID);
