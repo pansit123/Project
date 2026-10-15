@@ -11,7 +11,7 @@ public class CSVManager {
         List<String[]> data = new ArrayList<>();
 
         try (BufferedReader br =
-                     new BufferedReader(new FileReader(fileName))) {
+                     new BufferedReader(new InputStreamReader(new FileInputStream(fileName), java.nio.charset.StandardCharsets.UTF_8))) {
 
             String line;
 
@@ -34,7 +34,7 @@ public class CSVManager {
             List<String[]> data) {
 
         try (PrintWriter pw =
-                     new PrintWriter(new FileWriter(fileName))) {
+                     new PrintWriter(new OutputStreamWriter(new FileOutputStream(fileName), java.nio.charset.StandardCharsets.UTF_8))) {
 
             for (String[] row : data) {
 
