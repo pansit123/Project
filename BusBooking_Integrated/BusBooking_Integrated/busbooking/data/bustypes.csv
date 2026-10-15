@@ -1,0 +1,7 @@
+bus_type_id,bus_type_name,total_seats
+BT001,Standard,40
+BT002,VIP,32
+BT003,VIP 24 Seats,24
+BT004,First Class,20
+BT005,Mini Bus,15
+BT006,VIP,15
