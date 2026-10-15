@@ -1,5 +1,0 @@
-out/
-data/.lock
-data/tickets/
-*.class
-.vscode/
