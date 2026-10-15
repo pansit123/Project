@@ -11,19 +11,12 @@ import javax.imageio.ImageIO;
 
 public class LoginUI extends JFrame {
 
-    private JTextField userField;
+    private JTextField phoneField;
     private JPasswordField passField;
     private JButton loginButton;
     private JLabel registerLink;
 
-    // ข้อมูลจำลอง User
-    private User user = new User(
-            "U001",
-            "สมชาย ใจดี",
-            "somchai@email.com",
-            "password123",
-            "0812345678"
-    );
+    private User user = new User("", "");
 
     public LoginUI() {
         setTitle("เข้าสู่ระบบ - ระบบจองตั๋วรถบัส");
@@ -40,14 +33,13 @@ public class LoginUI extends JFrame {
         mainPanel.setBackground(Color.WHITE);
 
         // =====================================================
-        // ฝั่งซ้าย : LOGIN (จัดกึ่งกลางทั้งหมด)
+        // ฝั่งซ้าย : LOGIN
         // =====================================================
         JPanel leftPanel = new JPanel();
         leftPanel.setBackground(Color.WHITE);
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
         leftPanel.setBorder(new EmptyBorder(30, 45, 30, 45));
 
-        // ปุ่มปิด
         JPanel topBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         topBar.setOpaque(false);
         topBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
@@ -65,7 +57,6 @@ public class LoginUI extends JFrame {
 
         leftPanel.add(Box.createRigidArea(new Dimension(0, 5)));
 
-        // หัวข้อ "เข้าสู่ระบบ" (อยู่กึ่งกลาง)
         JLabel titleLabel = new JLabel("เข้าสู่ระบบ");
         titleLabel.setFont(new Font("Tahoma", Font.BOLD, 24));
         titleLabel.setForeground(new Color(30, 30, 30));
@@ -74,33 +65,32 @@ public class LoginUI extends JFrame {
 
         leftPanel.add(Box.createRigidArea(new Dimension(0, 25)));
 
-        // ขนาดมาตรฐานของช่องกรอกข้อมูลและปุ่ม (เพื่อให้ตรงกันและอยู่กึ่งกลางสวยงาม)
         Dimension fieldSize = new Dimension(280, 38);
 
-        // --- EMAIL GROUP ---
-        JPanel emailGroup = new JPanel();
-        emailGroup.setLayout(new BoxLayout(emailGroup, BoxLayout.Y_AXIS));
-        emailGroup.setOpaque(false);
-        emailGroup.setAlignmentX(Component.CENTER_ALIGNMENT);
-        emailGroup.setMaximumSize(new Dimension(280, 65));
+        // --- PHONE GROUP ---
+        JPanel phoneGroup = new JPanel();
+        phoneGroup.setLayout(new BoxLayout(phoneGroup, BoxLayout.Y_AXIS));
+        phoneGroup.setOpaque(false);
+        phoneGroup.setAlignmentX(Component.CENTER_ALIGNMENT);
+        phoneGroup.setMaximumSize(new Dimension(280, 65));
 
-        JPanel emailHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        emailHeader.setOpaque(false);
-        emailHeader.setMaximumSize(new Dimension(280, 18));
+        JPanel phoneHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        phoneHeader.setOpaque(false);
+        phoneHeader.setMaximumSize(new Dimension(280, 18));
         
-        JLabel userLabel = new JLabel("Email address");
-        userLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
-        userLabel.setForeground(new Color(80, 80, 80));
-        emailHeader.add(userLabel);
+        JLabel phoneLabel = new JLabel("เบอร์มือถือ (Phone Number)");
+        phoneLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
+        phoneLabel.setForeground(new Color(80, 80, 80));
+        phoneHeader.add(phoneLabel);
         
-        emailGroup.add(emailHeader);
-        emailGroup.add(Box.createRigidArea(new Dimension(0, 5)));
+        phoneGroup.add(phoneHeader);
+        phoneGroup.add(Box.createRigidArea(new Dimension(0, 5)));
 
-        userField = new JTextField();
-        styleTextField(userField, fieldSize);
-        emailGroup.add(userField);
+        phoneField = new JTextField();
+        styleTextField(phoneField, fieldSize);
+        phoneGroup.add(phoneField);
 
-        leftPanel.add(emailGroup);
+        leftPanel.add(phoneGroup);
         leftPanel.add(Box.createRigidArea(new Dimension(0, 15)));
 
         // --- PASSWORD GROUP ---
@@ -114,17 +104,10 @@ public class LoginUI extends JFrame {
         passHeader.setOpaque(false);
         passHeader.setMaximumSize(new Dimension(280, 18));
 
-        JLabel passLabel = new JLabel("Password");
+        JLabel passLabel = new JLabel("รหัสผ่าน (Password)");
         passLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
         passLabel.setForeground(new Color(80, 80, 80));
-
-        JLabel forgotPass = new JLabel(
-                "<html><a href='' style='color:#666666;text-decoration:none;font-size:11px;'>forgot password</a></html>"
-        );
-        forgotPass.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         passHeader.add(passLabel, BorderLayout.WEST);
-        passHeader.add(forgotPass, BorderLayout.EAST);
 
         passGroup.add(passHeader);
         passGroup.add(Box.createRigidArea(new Dimension(0, 5)));
@@ -134,22 +117,7 @@ public class LoginUI extends JFrame {
         passGroup.add(passField);
 
         leftPanel.add(passGroup);
-        leftPanel.add(Box.createRigidArea(new Dimension(0, 15)));
-
-        // --- REMEMBER ME ---
-        JPanel rememberWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        rememberWrapper.setOpaque(false);
-        rememberWrapper.setMaximumSize(new Dimension(280, 25));
-        rememberWrapper.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JCheckBox rememberCheck = new JCheckBox(" Remember for 30 days");
-        rememberCheck.setBackground(Color.WHITE);
-        rememberCheck.setFont(new Font("Tahoma", Font.PLAIN, 12));
-        rememberCheck.setForeground(new Color(100, 100, 100));
-        rememberWrapper.add(rememberCheck);
-        leftPanel.add(rememberWrapper);
-
-        leftPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        leftPanel.add(Box.createRigidArea(new Dimension(0, 25)));
 
         // --- LOGIN BUTTON ---
         loginButton = new JButton("Login");
@@ -170,9 +138,7 @@ public class LoginUI extends JFrame {
         signUpWrapper.setMaximumSize(new Dimension(280, 25));
         signUpWrapper.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        registerLink = new JLabel(
-                "<html>Don't have an account? <a href='' style='color:#000000;font-weight:bold;'>Sign Up</a></html>"
-        );
+        registerLink = new JLabel("<html>Don't have an account? <a href='' style='color:#000000;font-weight:bold;'>Sign Up</a></html>");
         registerLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
         signUpWrapper.add(registerLink);
         leftPanel.add(signUpWrapper);
@@ -239,14 +205,9 @@ public class LoginUI extends JFrame {
             }
 
             private BufferedImage loadImage() {
-                try {
-                    java.net.URL url = getClass().getResource("/login/images/comsci.jpg");
-                    if (url != null) return ImageIO.read(url);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
                 String[] paths = {
+                        "src/sc/login/images/comsci.jpg",
+                        "sc/login/images/comsci.jpg",
                         "src/login/images/comsci.jpg",
                         "login/images/comsci.jpg",
                         "./images/comsci.jpg",
@@ -256,10 +217,10 @@ public class LoginUI extends JFrame {
                 for (String path : paths) {
                     try {
                         File file = new File(path);
-                        if (file.exists()) return ImageIO.read(file);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                        if (file.exists()) {
+                            return ImageIO.read(file);
+                        }
+                    } catch (IOException ignored) {}
                 }
                 return null;
             }
@@ -269,19 +230,25 @@ public class LoginUI extends JFrame {
         mainPanel.add(rightPanel);
         setContentPane(mainPanel);
 
+        // =====================================================
         // LOGIN EVENT
+        // =====================================================
         loginButton.addActionListener(e -> {
-            String email = userField.getText().trim();
+            String phone = phoneField.getText().trim();
             String pass = new String(passField.getPassword()).trim();
 
-            if (user.login(email, pass)) {
-                JOptionPane.showMessageDialog(null, "Login สำเร็จ!", "สำเร็จ", JOptionPane.INFORMATION_MESSAGE);
+            if (user.login(phone, pass)) {
+                JOptionPane.showMessageDialog(null, "Login สำเร็จ! ยินดีต้อนรับคุณ " + User.loggedInUserName, "สำเร็จ", JOptionPane.INFORMATION_MESSAGE);
+                dispose();
+
+                SwingUtilities.invokeLater(() -> {
+                    new SelectSeatGUI().setVisible(true);
+                });
             } else {
-                JOptionPane.showMessageDialog(null, "อีเมลหรือรหัสผ่านไม่ถูกต้อง", "ข้อผิดพลาด", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "เบอร์มือถือหรือรหัสผ่านไม่ถูกต้อง", "ข้อผิดพลาด", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        // SIGN UP EVENT
         registerLink.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent evt) {
