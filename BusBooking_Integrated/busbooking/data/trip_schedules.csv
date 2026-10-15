@@ -1,0 +1,5 @@
+trip_id,route_id,bus_type_id,travel_date,departure_time,price,available_seats
+TR001,R001,BT001,2026-11-01,08:00,150.0,40
+TR002,R002,BT002,2026-11-01,09:30,200.00,32
+TR003,R003,BT003,2026-11-02,10:00,250.00,24
+TR004,R004,BT004,2026-11-02,13:00,350.00,20
