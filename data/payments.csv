@@ -1,2 +1,0 @@
-paymentId,bookingId,method,amount,status,paidAt
-PM0001,BK0011,PROMPTPAY,150.0,REFUNDED,2026-10-16 00:50:59
