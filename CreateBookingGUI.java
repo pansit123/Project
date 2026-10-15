@@ -1,48 +1,88 @@
-import java.awt.*;
-import javax.swing.*;
-import java.util.ArrayList;
+package busbooking.ui.booking;
 
+import busbooking.data.*;
+import busbooking.model.Booking;
+import busbooking.ui.UiTheme;
+
+import javax.swing.*;
+import java.awt.*;
+import java.time.*;
+import java.util.*;
+import java.util.List;
+
+// หน้าสรุปก่อนยืนยันการจอง เปิดจาก SelectSeatGUI
+// refresh = ให้หน้าเลือกที่นั่งวาดผังใหม่ (ที่นั่งที่เพิ่งจองจะกลายเป็นสีเทา)
 public class CreateBookingGUI extends JFrame {
 
-    public CreateBookingGUI(String tripID, String origin, String destination,ArrayList<String> selectedSeats, int selectedCount, int totalPrice) {
-        Container cp = this.getContentPane();
-        cp.setLayout(null);
-        cp.setBackground(new Color(230, 242, 255));
+    public CreateBookingGUI(String userId, String routeId, String route, LocalDate date, LocalTime time,
+                            List<String> seats, double price, BookingService service, Runnable refresh) {
+        super("ยืนยันการจอง");
+        setSize(470, 410);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setResizable(false);
 
-        JLabel lblTrip = new JLabel("เที่ยวรถ: " + tripID);
-        lblTrip.setFont(new Font("Tahoma", Font.BOLD, 16));
-        lblTrip.setBounds(30, 10, 400, 30);
-        cp.add(lblTrip);
+        Container p = getContentPane();
+        p.setLayout(null);
+        p.setBackground(new Color(230, 242, 255));
 
-        JLabel lblCount = new JLabel("จำนวนที่นั่ง: " + selectedCount + " ที่นั่ง");
-        lblCount.setFont(new Font("Tahoma", Font.BOLD, 16));
-        lblCount.setBounds(30, 50, 300, 30);
-        cp.add(lblCount);
+        String allSeats = String.join(", ", seats);
+        String[] details = {
+                "รหัสเส้นทาง: " + routeId,
+                "จำนวนที่นั่ง: " + seats.size() + " ที่นั่ง",
+                "ต้นทาง - ปลายทาง: " + route,
+                "ที่นั่ง: " + shorten(allSeats, 34),
+                "วันที่: " + date + " เวลา: " + time,
+                "ราคาสุทธิ: " + UiTheme.money(seats.size() * price),
+                "สถานะ: รอชำระเงิน (ชำระภายใน " + BookingService.PENDING_MINUTES + " นาที)"
+        };
+        int[] y = {10, 50, 85, 120, 155, 195, 230};
+        for (int i = 0; i < details.length; i++) {
+            JLabel label = new JLabel(details[i]);
+            label.setFont(new Font("Tahoma", Font.BOLD, 15));
+            label.setBounds(30, y[i], 420, 30);
+            if (i == 3) {
+                label.setToolTipText(allSeats);   // จองหลายที่นั่งจนยาวเกินช่อง: ชี้เมาส์ดูครบได้
+            }
+            p.add(label);
+        }
 
-        JLabel lblOrigin = new JLabel("ต้นทาง: " + origin);
-        lblOrigin.setFont(new Font("Tahoma", Font.BOLD, 16));
-        lblOrigin.setBounds(30, 70, 400, 30);
-        cp.add(lblOrigin);
+        JButton confirm = new JButton("ยืนยันและไปชำระเงิน");
+        confirm.setBounds(30, 295, 235, 45);
+        confirm.setFont(new Font("Tahoma", Font.BOLD, 14));
+        confirm.setBackground(new Color(0, 51, 153));
+        confirm.setForeground(Color.WHITE);
+        p.add(confirm);
 
-        JLabel lblSeats = new JLabel("ที่นั่ง: " + String.join(", ", selectedSeats));
-        lblSeats.setFont(new Font("Tahoma", Font.BOLD, 16));
-        lblSeats.setBounds(30, 100, 400, 30);
-        cp.add(lblSeats);
+        JButton cancel = new JButton("กลับไปเลือกที่นั่ง");
+        cancel.setBounds(280, 295, 155, 45);
+        cancel.setFont(new Font("Tahoma", Font.PLAIN, 13));
+        p.add(cancel);
 
-        JLabel lblDestination = new JLabel("ปลายทาง: " + destination);
-        lblDestination.setFont(new Font("Tahoma", Font.BOLD, 16));
-        lblDestination.setBounds(30, 140, 400, 30);
-        cp.add(lblDestination);
+        confirm.addActionListener(e -> {
+            try {
+                List<Booking> bookings = service.createBooking(userId, routeId, date, time, seats, price);
+                List<String> ids = new ArrayList<>();
+                for (Booking b : bookings) {
+                    ids.add(b.getBookingId());
+                }
+                JOptionPane.showMessageDialog(this, "สร้างการจองสำเร็จ: " + String.join(", ", ids));
+                dispose();
+                refresh.run();
+                new PaymentFrame(service, userId, ids).setVisible(true);
+            } catch (BookingException ex) {
+                // ส่วนใหญ่คือมีคนจองที่นั่งตัดหน้า -> ปิดหน้านี้ (ที่นั่งที่แสดงอยู่ใช้ไม่ได้แล้ว)
+                // แล้ววาดผังใหม่ให้เลือกที่นั่งจากข้อมูลล่าสุด
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "จองไม่สำเร็จ", JOptionPane.ERROR_MESSAGE);
+                dispose();
+                refresh.run();
+            }
+        });
+        cancel.addActionListener(e -> dispose());
+    }
 
-        JLabel lblPrice = new JLabel("ราคารวม: " + totalPrice + " บาท");
-        lblPrice.setFont(new Font("Tahoma", Font.BOLD, 18));
-        lblPrice.setBounds(30, 170, 300, 30);
-        cp.add(lblPrice);
-
-        this.setTitle("สร้างการจอง");
-        this.setSize(500, 300);
-        this.setVisible(true);
-        this.setLocationRelativeTo(null);
-        this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    /** ตัดข้อความที่ยาวเกิน max ตัวอักษร แล้วต่อท้ายด้วย "..." */
+    private static String shorten(String text, int max) {
+        return text.length() <= max ? text : text.substring(0, max).replaceAll(",\\s*\\S*$", "") + " ...";
     }
 }
