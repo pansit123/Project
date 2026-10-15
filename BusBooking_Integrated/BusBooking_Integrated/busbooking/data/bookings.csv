@@ -1,2 +1,0 @@
-bookingId,userId,routeId,travelDate,departTime,seatNo,price,status,bookingDate
-BK0001,ttt,R001,2026-11-01,08:00,B3,150.0,PAID,2026-10-15 20:51:02
